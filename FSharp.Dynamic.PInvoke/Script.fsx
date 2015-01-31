@@ -2,13 +2,49 @@
 // for more guidance on F# programming.
 
 #load "PInvoke.fs"
-#I "../FSharp.Dynamic/bin/Debug"
-#r "FSharp.Dynamic"
-open FSharp.Dynamic
-open FSharp.Dynamic.PInvoke
 
+open System
+
+open FSharp.Dynamic.PInvoke
+open System.Text
 // Define your library scripting code here
 
-let user32 = PInvoke("user32.dll", callingConvention = System.Runtime.InteropServices.CallingConvention.Winapi)
+let user32 = Library("user32.dll")
 
-let res : int = user32?MessageBox(0, "Hello world", "MyTitle", 0)
+
+let test = 
+    
+    let builder = StringBuilder("Hello World")
+
+    user32?CharLower builder
+    builder.ToString() |> printf "%s"
+
+    for i = 0 to 10000 do
+        (user32?CharLower 'B' : char) |> ignore
+
+let ntdll = Library("ntdll.dll")
+
+let test2 =
+    let res = ref 0L
+    ntdll?NtQuerySystemTime res
+    DateTime.FromFileTime !res |> printfn "%A"
+
+//    (user32?CharLower 'A')
+    //(user32?CharLower 'A') : char// = 'A' |> printfn "%A"
+
+//    user32?MessageBox(0, "Hello world", "MyTitle", 0)
+//    user32?MessageBox(0, "Hello world", "MyTitle", 0)
+
+//    user32?MessawergeBox(0, 1, "MyTitle", 0)
+//    user32?MessawergeBox(0, 1, "MyTitle", 0)
+//    user32?MessawergeBox(0, 1, "MyTitle", 0)
+//    user32?MessawergeBox(0, 1, "MyTitle", 0)
+//    user32?MessageBox(0, 1.0, "MyTitle", 0)
+//    user32?MessageBox()
+//    user32?MessageBox("23", 1)
+//    user32?MessageBox("23")
+//    user32?MessageBox((), "23", 1)
+//    user32?MessageBox(0, 1.0, "MyTitle", 0)
+//    user32?MessageBox(0, "Hello world", "MyTitle", 0)
+//    user32?MessageBox(0, "Hello world", "MyTitle", 0)
+

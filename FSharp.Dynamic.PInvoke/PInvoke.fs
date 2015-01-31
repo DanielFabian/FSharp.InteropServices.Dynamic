@@ -1,72 +1,143 @@
-﻿namespace FSharp.Dynamic.PInvoke
+﻿module FSharp.Dynamic.PInvoke
 
 open System
-open System.Collections.Generic
-open System.Linq
-open System.Text
-open System.Dynamic
+open System.Collections.Concurrent
 open System.Reflection
 open System.Linq.Expressions
 open System.Reflection.Emit
 open System.Threading
 open System.Runtime.InteropServices
+open System.Runtime.CompilerServices
+open Microsoft.FSharp.Reflection
 
-type internal PInvokeMetaObject(expression, value) =
-    inherit DynamicMetaObject(expression, BindingRestrictions.Empty, value)
+//type internal PInvokeMetaObject(expression, value) =
+//    inherit DynamicMetaObject(expression, BindingRestrictions.Empty, value)
+//
+//    override this.BindInvokeMember(binder, args) = 
+//        printfn "cache miss: %A" binder.ReturnType
+//        let returnType = typeof<int>
+//        let types, arguments =
+//            args
+//            |> Array.map (fun arg ->
+//                let expr = arg.Expression
+//                let ty =
+//                    match expr with
+//                    | :? ParameterExpression as p when p.IsByRef -> arg.LimitType.MakeByRefType()
+//                    | _ -> arg.LimitType
+//                ty, Expression.Convert(expr, ty) :> Expression)
+//            |> Array.unzip
+//        
+//        let dllImport = base.Value :?> Library 
+//        let mi = dllImport.GetInvokeMethod(binder.Name, returnType, types)
+//
+//        printfn "%A" mi.ReturnType
+//
+//        let call : Expression =
+//            if mi.ReturnType = typeof<System.Void> then
+////                upcast Expression.Block(Expression.Call(mi, arguments), Expression.Default(typeof<obj>))
+//                upcast Expression.Block(FSharp.Dynamic.DlrHelper.PrintExpression(Expression.Constant "Hello World"), Expression.Constant "bladddd")
+//            else
+////                upcast Expression.Convert(Expression.Call(mi, arguments), typeof<obj>)
+//                upcast Expression.Block(FSharp.Dynamic.DlrHelper.PrintExpression(Expression.Constant "Hello World"), Expression.Constant "blaa")
+//
+//        let restrictions = BindingRestrictions.GetTypeRestriction(this.Expression, typeof<Library>)
+//        
+//        DynamicMetaObject(call, restrictions)
 
-    let returnType binder =
-        binder.GetType().GetField("m_typeArguments", BindingFlags.NonPublic ||| BindingFlags.Instance).GetValue(binder) :?> _ seq
-        |> Seq.toList
-        |> function
-           | returnType::_ -> returnType
-           | _ -> null
 
-    override this.BindInvokeMember(binder, args) = 
-        let returnType = returnType binder
-        let types, arguments =
-            args
-            |> Array.map (fun arg ->
-                let expr = arg.Expression
-                let ty =
-                    match expr with
-                    | :? ParameterExpression as p when p.IsByRef -> arg.LimitType.MakeByRefType()
-                    | _ -> arg.LimitType
-                ty, Expression.Convert(expr, ty) :> Expression)
-            |> Array.unzip
-        
-        let dllImport = base.Value :?> PInvoke 
-        let mi = dllImport.GetInvokeMethod(binder.Name, returnType, types)
-        
-        printfn "%A" returnType
-        
-        let call : Expression =
-            if mi.ReturnType = typeof<System.Void> then
-                upcast Expression.Block(Expression.Call(mi, arguments), Expression.Default(typeof<obj>))
-            else
-                upcast Expression.Convert(Expression.Call(mi, arguments), typeof<obj>)
-
-        let restrictions = BindingRestrictions.GetTypeRestriction(this.Expression, typeof<PInvoke>)
-        
-        DynamicMetaObject(call, restrictions)
-        
-and PInvoke(dllName, ?charSet, ?callingConvention) =
-    inherit DynamicObject()
+type Library(name, ?charSet, ?callingConvention) =
     let charSet = defaultArg charSet CharSet.Auto
     let callingConvention = defaultArg callingConvention CallingConvention.Cdecl
-    let name = lazy AssemblyName(IO.Path.GetFileNameWithoutExtension dllName) 
-    let assemblyBuilder = lazy AppDomain.CurrentDomain.DefineDynamicAssembly(name.Value, AssemblyBuilderAccess.Run)
-    let moduleBuilder = lazy assemblyBuilder.Value.DefineDynamicModule name.Value.Name
+    let assemblyName = lazy AssemblyName(IO.Path.GetFileNameWithoutExtension name) 
+    let assemblyBuilder = lazy AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName.Value, AssemblyBuilderAccess.Run)
+    let moduleBuilder = lazy assemblyBuilder.Value.DefineDynamicModule assemblyName.Value.Name
     let methodIndex = ref 0
     let defineTypeName methodName = sprintf "%s_%d" methodName (Interlocked.Increment methodIndex)
-    override this.GetMetaObject(args) = upcast PInvokeMetaObject(args, this)
+    member this.Name = name
     member this.GetInvokeMethod(methodName, returnType, types) : MethodInfo = 
         let defineType = moduleBuilder.Value.DefineType(defineTypeName methodName)
         let methodBuilder =
             defineType.DefinePInvokeMethod(
-                methodName, dllName, methodName, MethodAttributes.Public ||| MethodAttributes.Static ||| MethodAttributes.PinvokeImpl,
+                methodName, name, methodName, MethodAttributes.Public ||| MethodAttributes.Static ||| MethodAttributes.PinvokeImpl,
                 CallingConventions.Standard, returnType, types, callingConvention, charSet)
 
         if returnType <> typeof<System.Void> then
             methodBuilder.SetImplementationFlags(MethodImplAttributes.PreserveSig ||| methodBuilder.GetMethodImplementationFlags())
 
         defineType.CreateType().GetMethod(methodName, BindingFlags.Public ||| BindingFlags.Static)
+
+type PInvokeCallSiteBinder(methodName) =
+    inherit CallSiteBinder()
+
+    let asByRef (ty:Type) =
+        if not ty.IsGenericType then ty else 
+        match ty.GetGenericTypeDefinition() with
+        | tyd when tyd = typedefof<_ ref> -> ty.GetGenericArguments().[0].MakeByRefType()
+        | _ -> ty
+        
+        
+
+    let rec expandTuple (expression:Expression) =
+        if expression.Type = typeof<unit> then
+            [| |]
+        elif not expression.Type.IsGenericType then
+            [|expression|]
+        else
+            let item i = Expression.Property(expression, sprintf "Item%d" i)
+            match expression.Type.GetGenericTypeDefinition() with
+            | ty when ty = typedefof<_*_> -> [| item 1; item 2 |]
+            | ty when ty = typedefof<_*_*_> -> [| item 1; item 2; item 3 |]
+            | ty when ty = typedefof<_*_*_*_> -> [| item 1; item 2; item 3; item 4 |]
+            | ty when ty = typedefof<_*_*_*_*_> -> [| item 1; item 2; item 3; item 4; item 5 |]
+            | ty when ty = typedefof<_*_*_*_*_*_> -> [| item 1; item 2; item 3; item 4; item 5; item 6 |]
+            | ty when ty = typedefof<_*_*_*_*_*_*_> -> [| item 1; item 2; item 3; item 4; item 5; item 6; item 7 |]
+            | ty when ty = typedefof<_*_*_*_*_*_*_*_> -> Array.append [| item 1; item 2; item 3; item 4; item 5; item 6; item 7 |] (expandTuple (item 8))
+            | ty when ty = typedefof<_ ref> -> [| Expression.Property(expression, "Value") |]
+            | ty -> failwithf "unknown generic type: %A" ty
+
+
+    override x.Bind(args, parameters, returnLabel) =
+        let target, _, targetParam, argsParam = 
+            match args, List.ofSeq parameters with
+            | [| :? Library as target; args |], [targetParam; argsParam] -> target, args, targetParam, argsParam
+            | _ -> failwithf "wrong amount of arguments: %A" args
+
+        let argTypes =
+            match FSharpType.IsTuple argsParam.Type with
+            | true -> FSharpType.GetTupleElements argsParam.Type
+            | false -> [| argsParam.Type |]
+            |> Array.filter ((<>) typeof<unit>)
+            |> Array.map asByRef
+
+        match returnLabel.Type with
+        | ty when FSharpType.IsFunction ty -> failwithf "Curried functions are not supported, use tupled arguments."
+        | _ -> () // TODO: consider other evil cases, e.g. tuples, records, etc.
+
+        let returnType = if returnLabel.Type = typeof<unit> then typeof<System.Void> else returnLabel.Type
+
+        
+        let mi = target.GetInvokeMethod(methodName, returnType, argTypes)
+        
+        printfn "cache miss; PInvoke method: %A" mi
+
+        if returnType = typeof<System.Void> then
+            Expression.IfThen(
+                Expression.TypeEqual(targetParam, typeof<Library>),
+                Expression.Return(returnLabel,
+                    Expression.Block(
+                        Expression.Call(mi, expandTuple argsParam),
+                        Expression.Default(typeof<unit>)))) :> _
+        else
+            Expression.IfThen(
+                Expression.TypeEqual(targetParam, typeof<Library>),
+                Expression.Return(returnLabel, Expression.Call(mi, expandTuple argsParam))) :> _
+
+module Binder =
+    let private binders = ConcurrentDictionary<_, PInvokeCallSiteBinder>()
+    let PInvoke (lib:Library) methodName = binders.GetOrAdd((lib.Name, methodName), fun (_, methodName) -> PInvokeCallSiteBinder(methodName))
+
+let (?) lib methodName : 'args -> 'res = 
+    let binder = PInvokeCallSiteBinder(methodName)
+    let binder = Binder.PInvoke lib methodName
+    let callsite = CallSite<Func<CallSite, _, _, _>>.Create(binder)
+    fun args -> callsite.Target.Invoke(callsite, lib, args)
