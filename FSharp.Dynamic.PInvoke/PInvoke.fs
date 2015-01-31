@@ -10,41 +10,6 @@ open System.Runtime.InteropServices
 open System.Runtime.CompilerServices
 open Microsoft.FSharp.Reflection
 
-//type internal PInvokeMetaObject(expression, value) =
-//    inherit DynamicMetaObject(expression, BindingRestrictions.Empty, value)
-//
-//    override this.BindInvokeMember(binder, args) = 
-//        printfn "cache miss: %A" binder.ReturnType
-//        let returnType = typeof<int>
-//        let types, arguments =
-//            args
-//            |> Array.map (fun arg ->
-//                let expr = arg.Expression
-//                let ty =
-//                    match expr with
-//                    | :? ParameterExpression as p when p.IsByRef -> arg.LimitType.MakeByRefType()
-//                    | _ -> arg.LimitType
-//                ty, Expression.Convert(expr, ty) :> Expression)
-//            |> Array.unzip
-//        
-//        let dllImport = base.Value :?> Library 
-//        let mi = dllImport.GetInvokeMethod(binder.Name, returnType, types)
-//
-//        printfn "%A" mi.ReturnType
-//
-//        let call : Expression =
-//            if mi.ReturnType = typeof<System.Void> then
-////                upcast Expression.Block(Expression.Call(mi, arguments), Expression.Default(typeof<obj>))
-//                upcast Expression.Block(FSharp.Dynamic.DlrHelper.PrintExpression(Expression.Constant "Hello World"), Expression.Constant "bladddd")
-//            else
-////                upcast Expression.Convert(Expression.Call(mi, arguments), typeof<obj>)
-//                upcast Expression.Block(FSharp.Dynamic.DlrHelper.PrintExpression(Expression.Constant "Hello World"), Expression.Constant "blaa")
-//
-//        let restrictions = BindingRestrictions.GetTypeRestriction(this.Expression, typeof<Library>)
-//        
-//        DynamicMetaObject(call, restrictions)
-
-
 type Library(name, ?charSet, ?callingConvention) =
     let charSet = defaultArg charSet CharSet.Auto
     let callingConvention = defaultArg callingConvention CallingConvention.Cdecl

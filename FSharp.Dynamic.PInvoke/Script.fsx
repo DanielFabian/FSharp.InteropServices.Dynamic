@@ -12,8 +12,7 @@ open System.Text
 let user32 = Library("user32.dll")
 
 
-let test = 
-    
+let test =     
     let builder = StringBuilder("Hello World")
 
     user32?CharLower builder
@@ -29,22 +28,7 @@ let test2 =
     ntdll?NtQuerySystemTime res
     DateTime.FromFileTime !res |> printfn "%A"
 
-//    (user32?CharLower 'A')
-    //(user32?CharLower 'A') : char// = 'A' |> printfn "%A"
+let test3 : int =
 
-//    user32?MessageBox(0, "Hello world", "MyTitle", 0)
-//    user32?MessageBox(0, "Hello world", "MyTitle", 0)
-
-//    user32?MessawergeBox(0, 1, "MyTitle", 0)
-//    user32?MessawergeBox(0, 1, "MyTitle", 0)
-//    user32?MessawergeBox(0, 1, "MyTitle", 0)
-//    user32?MessawergeBox(0, 1, "MyTitle", 0)
-//    user32?MessageBox(0, 1.0, "MyTitle", 0)
-//    user32?MessageBox()
-//    user32?MessageBox("23", 1)
-//    user32?MessageBox("23")
-//    user32?MessageBox((), "23", 1)
-//    user32?MessageBox(0, 1.0, "MyTitle", 0)
-//    user32?MessageBox(0, "Hello world", "MyTitle", 0)
-//    user32?MessageBox(0, "Hello world", "MyTitle", 0)
-
+    user32?MessageBox(0, "Hello world", "MyTitle", 0)
+    user32?MessageBox(0, "Hello world", "MyTitle", 0)
