@@ -42,7 +42,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DlrHelper.fs" />
     <Compile Include="PInvoke.fs" />
     <None Include="Script.fsx" />
   </ItemGroup>
