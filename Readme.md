@@ -16,7 +16,7 @@ It is particularly well-suited for exploring libraries in F# scripts.
 
 # Usage
 
-Create a late-bound (dynamic) P/Invoke wrapper for an assembly by first creating an object `let mylib = Library("mylib.dll")`. Then you can immediately access P/Invoke methods on it by using the `?` operator; `mylib?MyMethod("arg1", 2, 3.0)`
+Create a late-bound (dynamic) P/Invoke wrapper for an assembly by first creating an object `Library("mylib.dll")`. Then you can immediately access P/Invoke methods on it by using the `?` operator; `mylib?MyMethod("arg1", 2, 3.0)`
 
 	open FSharp.InteropServices.Dynamic
 
