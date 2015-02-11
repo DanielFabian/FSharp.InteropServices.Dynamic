@@ -14,6 +14,7 @@ x64/
 build/
 [Bb]in/
 [Oo]bj/
+nuget/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -146,3 +147,4 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
+AssemblyInfo.fs
