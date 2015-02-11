@@ -8,10 +8,10 @@
     <ProjectGuid>1a21652c-e09a-4305-b901-43f701bb5900</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSharp.Dynamic.PInvoke</RootNamespace>
-    <AssemblyName>FSharp.Dynamic.PInvoke</AssemblyName>
+    <AssemblyName>FSharp.InteropServices.Dynamic</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>FSharp.Dynamic.PInvoke</Name>
+    <Name>FSharp.InteropServices.Dynamic</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

@@ -1,4 +1,4 @@
-﻿module FSharp.Dynamic.PInvoke
+﻿module FSharp.InteropServices.Dynamic
 
 open System
 open System.Collections.Concurrent
