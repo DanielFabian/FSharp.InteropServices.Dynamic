@@ -1,16 +1,11 @@
-﻿// Learn more about F# at http://fsharp.net. See the 'F# Tutorial' project
-// for more guidance on F# programming.
-
-#load "PInvoke.fs"
+﻿#load "PInvoke.fs"
 
 open System
 
-open FSharp.Dynamic.PInvoke
+open FSharp.InteropServices.Dynamic
 open System.Text
-// Define your library scripting code here
 
 let user32 = Library("user32.dll")
-
 
 let test =     
     let builder = StringBuilder("Hello World")
