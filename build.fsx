@@ -1,6 +1,8 @@
 ﻿#r "packages/FAKE/tools/FakeLib.dll"
 open Fake 
 open Fake.ReleaseNotesHelper
+open Fake.AssemblyInfoFile
+open Fake.Git
 
 let buildDir = "./build"
 let nugetDir = "./nuget"
@@ -17,7 +19,6 @@ Target "Build" (fun _ ->
     |> Log "AppBuild-Output: "
 )
 
-open Fake.AssemblyInfoFile
 
 Target "SetAssemblyInfo" (fun _ ->
     [ Attribute.Product "FSharp.InteropServices.Dynamic"
@@ -40,7 +41,7 @@ Target "Nuget" (fun _ ->
 
     printfn "%A" (getBuildParamOrDefault "nugetkey" "")
 
-    NuGetPack (fun p -> 
+    NuGet (fun p -> 
         { p with 
             Authors = ["Daniel Fabian"]
             Project = "FSharp.InteropServices.Dynamic"
@@ -57,6 +58,15 @@ Target "Nuget" (fun _ ->
         nuspec
 )
 
+Target "Release" (fun _ ->
+    StageAll ""
+    Commit "" (sprintf "Bump version to %s" release.NugetVersion)
+    Branches.push ""
+
+    Branches.tag "" release.NugetVersion
+    Branches.pushTag "" "origin" release.NugetVersion
+)
+
 Target "Default" DoNothing
 
 "Clean"
@@ -64,5 +74,6 @@ Target "Default" DoNothing
     ==> "Build"
     ==> "Nuget"
     ==> "Default"
+    ==> "Release"
 
-Run "Default"
+RunTarget()

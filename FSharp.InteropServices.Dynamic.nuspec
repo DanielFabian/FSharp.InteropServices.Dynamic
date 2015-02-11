@@ -9,7 +9,7 @@
     <summary>@summary@</summary>
     <projectUrl>http://www.github.com/DanielFabian/FSharp.InteropServices.Dynamic</projectUrl>
     <licenseUrl>http://www.github.com/DanielFabian/FSharp.InteropServices.Dynamic/blob/master/License.txt</licenseUrl>
-    <iconUrl>https://github.com/fsprojects/ProjectScaffold/blob/master/docs/files/img/logo.png</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/fsprojects/ProjectScaffold/master/docs/files/img/logo.png</iconUrl>
     <releaseNotes>@releaseNotes@</releaseNotes>
     <tags>f#, dlr, dynamic, pinvoke</tags>
     @dependencies@
