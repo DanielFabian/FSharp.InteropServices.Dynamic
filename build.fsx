@@ -38,6 +38,8 @@ Target "Nuget" (fun _ ->
 
     let nuspec = !! "*.nuspec" |> Seq.exactlyOne
 
+    printfn "%A" (getBuildParamOrDefault "nugetkey" "")
+
     NuGetPack (fun p -> 
         { p with 
             Authors = ["Daniel Fabian"]
@@ -49,12 +51,10 @@ Target "Nuget" (fun _ ->
                 "Using the DLR, it is possible to concisely access native libraries in " +
                 "scripts and programs. This project leverages the dynamic lookup operator of F# and " +
                 "the dynamic language runtime to provide dynamic P/Invoke wrappers for native libraries."
-            ReleaseNotes = release.Notes |> toLines })
+            ReleaseNotes = release.Notes |> toLines
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey" })
         nuspec
-)
-
-Target "Publish" (fun _ ->
-    trace "no nuget publish yet"
 )
 
 Target "Default" DoNothing
@@ -64,6 +64,5 @@ Target "Default" DoNothing
     ==> "Build"
     ==> "Nuget"
     ==> "Default"
-    ==> "Publish"
 
-RunTargetOrDefault "Default"
+Run "Default"

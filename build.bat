@@ -16,4 +16,4 @@ SET TARGET="Default"
 
 IF NOT [%1]==[] (set TARGET="%1")
 
-"packages\FAKE\tools\Fake.exe" "build.fsx" "target=%TARGET%"
+"packages\FAKE\tools\Fake.exe" "build.fsx" "target=%TARGET%" %2
