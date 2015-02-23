@@ -83,7 +83,7 @@ type PInvokeCallSiteBinder(methodName) =
         
         let mi = target.GetInvokeMethod(methodName, returnType, argTypes)
         
-        printfn "cache miss; PInvoke method: %A" mi
+        //printfn "cache miss; PInvoke method: %A" mi
 
         if returnType = typeof<System.Void> then
             Expression.IfThen(

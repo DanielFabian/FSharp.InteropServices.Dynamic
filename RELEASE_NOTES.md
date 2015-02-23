@@ -1,3 +1,6 @@
+#### 0.0.3-alpha - 23.02.2015
+* Do not print cache misses
+
 #### 0.0.2-alpha - 11.02.2015
 * Adjust nuget logo
 
