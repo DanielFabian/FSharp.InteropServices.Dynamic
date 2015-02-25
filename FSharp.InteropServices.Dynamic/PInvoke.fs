@@ -48,7 +48,7 @@ type PInvokeCallSiteBinder(methodName) =
         elif not expression.Type.IsGenericType then
             [|expression|]
         else
-            let item i = Expression.Property(expression, sprintf "Item%d" i)
+            let item i = Expression.Property(expression, if i = 8 then "Rest" else sprintf "Item%d" i)
             match expression.Type.GetGenericTypeDefinition() with
             | ty when ty = typedefof<_*_> -> [| item 1; item 2 |]
             | ty when ty = typedefof<_*_*_> -> [| item 1; item 2; item 3 |]
