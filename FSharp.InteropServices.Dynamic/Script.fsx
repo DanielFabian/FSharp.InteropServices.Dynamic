@@ -11,7 +11,7 @@ let test =
     let builder = StringBuilder("Hello World")
 
     user32?CharLower builder
-    builder.ToString() |> printf "%s"
+    builder.ToString() |> printfn "%s"
 
     for i = 0 to 10000 do
         (user32?CharLower 'B' : char) |> ignore
@@ -27,3 +27,7 @@ let test3 : int =
 
     user32?MessageBox(0, "Hello world", "MyTitle", 0)
     user32?MessageBox(0, "Hello world", "MyTitle", 0)
+
+let test4 : unit =
+    let w, h = ref 0, ref 0
+    user32?twoRefInts(w, h)
